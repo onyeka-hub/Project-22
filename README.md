@@ -581,12 +581,11 @@ All types of service
 ![all types of service](./images/All-service-type-in-one-view.jpeg)
 
 #### ClusterIP
+To solve this problem, kubernetes uses Service – An object that abstracts the underlining IP addresses of Pods. A service can serve as a load balancer, and a reverse proxy which basically takes the request using a human readable DNS name, resolves to a Pod IP that is running and forwards the request to it. This way, you do not need to use an IP address. Rather, you can simply refer to the service name directly.
 
 ![all types of service](./images/service-ClusterIP-to-Pod-1.png)
 
 ![all types of service](./images/service-ClusterIP-to-Pod-2.png)
-
-To solve this problem, kubernetes uses Service – An object that abstracts the underlining IP addresses of Pods. A service can serve as a load balancer, and a reverse proxy which basically takes the request using a human readable DNS name, resolves to a Pod IP that is running and forwards the request to it. This way, you do not need to use an IP address. Rather, you can simply refer to the service name directly.
 
 Let us create a service to access the **Nginx Pod**
 
@@ -696,9 +695,9 @@ Then go to your web browser and enter **localhost:8089** – You should now be a
 ![nginx page from the browser](./images/nginx-page-from-browser.PNG)
 
 #### NodePort
-
-![all types of service](./images/All-service-type-in-one-view.jpeg)
 This allows us to reach the application directly from the port of the node/ec2 instance that the pod/application is running on. When you specify a port on the node, you can access the application with just the public ip address:port of the instance with out doing port forwarding.
+
+![all types of service](./images/service-NodePort-to-Pod.jpeg)
 
 ```
 apiVersion: v1
@@ -722,12 +721,11 @@ spec:
 
 #### LoadBalancer
 USING AWS LOAD BALANCER TO ACCESS YOUR SERVICE IN KUBERNETES.
-
-![all types of service](./images/service-LB-to-Pod.png)
-
 Note: You will only be able to test this using AWS EKS. You don not have to set this up in current project yet. In the next project, you will update your Terraform code to build an EKS cluster. 
 
 You have previously accessed the Nginx service through ClusterIP, and NodeIP, but there is another service type – Loadbalancer. This type of service does not only create a Service object in K8s, but also provisions a real external Load Balancer (e.g. Elastic Load Balancer – ELB in AWS)
+
+![all types of service](./images/service-LB-to-Pod.png)
 
 To get the experience of this service type, update your service manifest and use the LoadBalancer type. Also, ensure that the selector references the Pods in the replica set.
 
