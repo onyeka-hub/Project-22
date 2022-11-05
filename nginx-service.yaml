@@ -3,11 +3,10 @@ kind: Service
 metadata:
   name: nginx-service
 spec:
-  type: LoadBalancer
   selector:
     tier: frontend
   ports:
     - protocol: TCP
-      port: 80 # This is the port the Loadbalancer is listening at
-      targetPort: 80 # This is the port the container is listening at
+      port: 80 # This is the port the service is listening on or the port of the service
+      targetPort: 80 # This is the port the container is listening on or the port of the pod
 

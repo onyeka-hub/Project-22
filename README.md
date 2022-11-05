@@ -35,11 +35,12 @@ Within this project we are going to learn and see in action following:
 
 6. Hybrid CI/CD by combining different tools such as: Gitlab CICD, Jenkins. And, you will also be introduced to concepts around GitOps using Weaveworks Flux.
 
-# DEPLOYING APPLICATIONS INTO KUBERNETES CLUSTER
+## DEPLOYING APPLICATIONS INTO KUBERNETES CLUSTER
 
 This project demonstrates how containerised applications are deployed as pods in Kubernetes and how to access the application from the browser.
 
-# Step 1 : Created an AWS EKS cluster using the github terraform code repository for aws provider
+### Step 1
+Created an AWS EKS cluster using the github terraform code repository for aws provider: https://github.com/onyeka-hub/terraform-provider-aws.git or with the terraform eks modules
 
 Connect to the cluster with the below command
 
@@ -49,9 +50,9 @@ aws eks --region us-east-2 update-kubeconfig --name terraform-eks-demo
 
 ![eks cluster](./images/eks-cluster.PNG)
 
-# Step 2 : Creating A Pod For The Nginx Application
+### Step 2 : Creating A Pod For The Nginx Application
 
-## Understanding the common YAML fields for every Kubernetes object
+#### Understanding the common YAML fields for every Kubernetes object
 
 Every Kubernetes object includes object fields that govern the object’s configuration:
 
@@ -62,7 +63,7 @@ labels and annotations.
 - spec: consists of the core information about Pod. Here we will tell kubernetes what would be the expected state of resource, Like container image, number of replicas, environment variables and volumes.
 - status: consists of information about the running object, status of each container. Status field is supplied and updated by Kubernetes after creation. This is not something you will have to put in the YAML manifest.
 
-## Deploying a random Pod
+##### Deploying a random Pod
 
 Lets see what it looks like to have a Pod running in a k8s cluster. This section is just to illustrate and get you to familiarise with how the object’s fields work. Lets deploy a basic Nginx container to run inside a Pod.
 
@@ -93,7 +94,8 @@ spec:
 ```
     kubectl apply -f nginx-pod.yaml
 ```
-### Output:
+
+Output:
 
 ![nginx pod created](./images/nginx-pod-created.PNG)
 
@@ -102,7 +104,7 @@ spec:
     kubectl get pods
 ```
 
-### Output:
+Output:
 
 ![nginx pod created](./images/nginx-pod.PNG)
 
@@ -114,7 +116,6 @@ nginx-pod   0/1     Pending   0          111s
 5. To see other fields introduced by kubernetes after you have deployed the resource, simply run below command, and examine the output. You will see other fields that kubernetes updates from time to time to represent the state of the resource within the cluster. -o simply means the output format.
 ```
 kubectl get pod nginx-pod -o yaml 
-or
 
 kubectl describe pod nginx-pod
 ```
@@ -122,6 +123,7 @@ kubectl describe pod nginx-pod
 ![nginx pod](./images/nginx-pod-describe.PNG)
 
 - Running the following commands to inspect the setup:
+
 ```
 $ kubectl get pod 
 
@@ -131,148 +133,7 @@ $ kubectl get pod nginx-pod -o wide
 ![inspecting the nginx pod](./images/nginx-pod-inspect.PNG)
 
 
-# Step 3 : Accessing The Nginx Application Through A Browser
-
-Now you have a running Pod. What’s next?
-
-The ultimate goal of any solution is to access it either through a web portal or some application (e.g., mobile app). We have a Pod with Nginx container, so we need to access it from the browser. But all you have is a running Pod that has its own IP address which cannot be accessed through the browser. To achieve this, we need another Kubernetes object called Service to accept our request and pass it on to the Pod.
-
-A service is an object that accepts requests on behalf of the Pods and forwards it to the Pod’s IP address. If you run the command below, you will be able to see the Pod’s IP address. But there is no way to reach it directly from the outside world.
-```
-kubectl get pod nginx-pod  -o wide
-```
-
-### Output:
-
-NAME        READY   STATUS    RESTARTS   AGE    IP               NODE                                              NOMINATED NODE   READINESS GATES
-nginx-pod   1/1     Running   0          138m   10.0.0.144   ip-10-0-0-216.us-east-2.compute.internal   <none>           <none>
-
-Let us try to access the Pod through its IP address from within the K8s cluster. To do this,
-
-1. We need an image that already has curl software installed. You can check it out here
-```
-dareyregistry/curl
-```
-2. Run kubectl to connect inside the container
-```
-kubectl run curl --image=dareyregistry/curl -i --tty
-```
-3. Run curl and point to the IP address of the Nginx Pod 
-```
-# curl -v 10.0.0.144:80
-```
-
-### Output:
-
-![nginx page from another container](./images/nginx-page-from-curl.PNG)
-
-If the use case for your solution is required for internal use ONLY, without public Internet requirement. Then, this should be OK. But in most cases, it is NOT!
-
-Assuming that your requirement is to access the Nginx Pod internally, using the Pod’s IP address directly as above is not a reliable choice because Pods are ephemeral. They are not designed to run forever. When they die and another Pod is brought back up, the IP address will change and any application that is using the previous IP address directly will break.
-
-To solve this problem, kubernetes uses Service – An object that abstracts the underlining IP addresses of Pods. A service can serve as a load balancer, and a reverse proxy which basically takes the request using a human readable DNS name, resolves to a Pod IP that is running and forwards the request to it. This way, you do not need to use an IP address. Rather, you can simply refer to the service name directly.
-
-Let us create a service to access the **Nginx Pod**
-
-1. Create a Service yaml manifest file:
-
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-spec:
-  selector:
-    app: nginx-pod 
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-```
-
-2. Create a nginx-service resource by applying your manifest
-```
-kubectl apply -f nginx-service.yaml
-```
-
-### output:
-
-service/nginx-service created
-
-3. Check the created service
-
-```
-kubectl get service
-```
-### output:
-
-NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-kubernetes      ClusterIP   172.20.0.1      <none>        443/TCP   41m
-nginx-service   ClusterIP   172.20.101.166   <none>        80/TCP   29s
-
-## Observation:
-
-The **TYPE** column in the output shows that there are different service types.
-
-- ClusterIP
-- NodePort
-- LoadBalancer &
-- Headless Service
-
-Since we did not specify any type, it is obvious that the default type is **ClusterIP**
-
-Now that we have a service created, how can we access the app? Since there is no public IP address, we can leverage kubectl's port-forward functionality.
-```
-kubectl  port-forward svc/nginx-service 8089:80
-```
-8089 is an arbitrary port number on your laptop or client PC, and we want to tunnel traffic through it to the port number of the nginx-service 80.
-
-![service port forwarding](./images/service-port-forwarding.PNG)
-
-Unfortunately, this will not work quite yet. Because there is no way the service will be able to select the actual Pod it is meant to route traffic to. If there are hundreds of Pods running, there must be a way to ensure that the service only forwards requests to the specific Pod it is intended for.
-
-To make this work, you must reconfigure the Pod manifest and introduce labels to match the selectors key in the field section of the service manifest.
-
-1. Update the Pod manifest with the below and apply the manifest:
-
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx-pod
-  labels:
-    app: nginx-pod  
-spec:
-  containers:
-  - image: nginx:latest
-    name: nginx-pod
-    ports:
-    - containerPort: 80
-      protocol: TCP
-```
-
-Notice that under the metadata section, we have now introduced labels with a key field called app and its value nginx-pod. This matches exactly the selector key in the service manifest.
-
-The key/value pairs can be anything you specify. These are not Kubernetes specific keywords. As long as it matches the selector, the service object will be able to route traffic to the Pod.
-
-Apply the manifest with:
-```
-kubectl apply -f nginx-pod.yaml
-```
-
-2. Run kubectl port-forward command again
-```
-kubectl  port-forward svc/nginx-service 8089:80
-```
-### output:
-
-![port forwarding](./images/port-forwarding.PNG)
-
-Then go to your web browser and enter **localhost:8089** – You should now be able to see the nginx page in the browser.
-
-![nginx page from the browser](./images/nginx-page-from-browser.PNG)
-
-# Step 4 : Creating A Replica Set
+### Step 3 : Creating A Replica Set
 
 Let us create a rs.yaml manifest for a ReplicaSet object:
 
@@ -324,7 +185,8 @@ Try to delete one of the Pods:
 ```
 kubectl delete pod nginx-rs-5c4xs
 ```
-### Output:
+
+Output:
 ```
 pod "nginx-rs-5c4xs" deleted
 ```
@@ -342,14 +204,14 @@ Explore the ReplicaSet created:
 kubectl get rs -o wide
 ```
 
-### Output:
+Output:
 
 NAME        DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES         SELECTOR
 nginx-rs   3         3         3       34m   nginx-pod    nginx:latest   app=nginx-pod
 
 Notice, that ReplicaSet understands which Pods to create by using SELECTOR key-value pair.
 
-### Get detailed information of a ReplicaSet
+#### Get detailed information of a ReplicaSet
 
 To display detailed information about any Kubernetes object, you can use 2 differen commands:
 
@@ -361,18 +223,21 @@ Try both commands in action and see the difference. Also try get with -o json in
 ![replica-set](./images/describe-replicaset.PNG)
 
 
-### Scale ReplicaSet up and down:
+#### Scale ReplicaSet up and down:
 
 In general, there are 2 approaches of Kubernetes Object Management: imperative and declarative.
 
 Let us see how we can use both to scale our Replicaset up and down:
 
-### Imperative:
+##### Imperative:
 
 We can easily scale our ReplicaSet up by specifying the desired number of replicas in an imperative command, like this:
 
 ```
-❯ kubectl scale rs nginx-rs --replicas=5
+kubectl scale rs nginx-rs --replicas=5
+```
+Output
+```
 replicationcontroller/nginx-rc scaled
 ```
 
@@ -383,7 +248,7 @@ replicationcontroller/nginx-rc scaled
 
 Scaling down will work the same way, so scale it down to 3 replicas.
 
-### Declarative:
+##### Declarative:
 
 Declarative way would be to open our rs.yaml manifest, change desired number of replicas in respective section
 
@@ -404,7 +269,7 @@ There is another method – ‘ad-hoc’, it is definitely not the best practice
 kubectl edit -f rs.yaml
 ```
 
-### Advanced label matching
+#### Advanced label matching
 
 As Kubernetes mature as a technology, so does its features and improvements to k8s objects. ReplicationControllers do not meet certain complex business requirements when it comes to using selectors. Imagine if you need to select Pods with multiple lables that represents things like:
 
@@ -465,107 +330,8 @@ In the above spec file, under the selector, matchLabels and matchExpression are 
 
 ![replicaset advance features](./images/replicaset-advance.PNG)
 
-# Step 5: USING AWS LOAD BALANCER TO ACCESS YOUR SERVICE IN KUBERNETES.
 
-Note: You will only be able to test this using AWS EKS. You don not have to set this up in current project yet. In the next project, you will update your Terraform code to build an EKS cluster. 
-
-You have previously accessed the Nginx service through ClusterIP, and NodeIP, but there is another service type – Loadbalancer. This type of service does not only create a Service object in K8s, but also provisions a real external Load Balancer (e.g. Elastic Load Balancer – ELB in AWS)
-
-To get the experience of this service type, update your service manifest and use the LoadBalancer type. Also, ensure that the selector references the Pods in the replica set.
-
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-spec:
-  type: LoadBalancer
-  selector:
-    tier: frontend
-  ports:
-    - protocol: TCP
-      port: 80 # This is the port the Loadbalancer is listening at
-      targetPort: 80 # This is the port the container is listening at
-```
-
-Apply the configuration:
-
-```
-kubectl apply -f nginx-service.yaml
-```
-
-Get the newly created service :
-
-```
-kubectl get service nginx-service
-```
-
-### output:
-
-![loadbalancer service type](./images/service-type-loadbalancer.PNG)
-
-An ELB resource will be created in your AWS console.
-
-![loadbalancer service type](./images/aws-loadbalancer.PNG)
-
-A Kubernetes component in the control plane called Cloud-controller-manager is responsible for triggeriong this action. It connects to your specific cloud provider’s (AWS) APIs and create resources such as Load balancers. It will ensure that the resource is appropriately tagged:
-
-![loadbalancer service type](./images/aws-loadbalancer-tag.PNG)
-
-Get the output of the entire yaml for the service. You will see some additional information about this service in which you did not define them in the yaml manifest. Kubernetes did this for you.
-
-```
-kubectl get service nginx-service -o yaml
-```
-
-### output:
-
-```
-$ kubectl get service nginx-service -o yaml
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    kubectl.kubernetes.io/last-applied-configuration: |
-      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"nginx-service","namespace":"default"},"spec":{"ports":[{"port":80,"protocol":"TCP","targetPort":80}],"selector":{"tier":"frontend"},"type":"LoadBalancer"}}
-  creationTimestamp: "2022-09-09T10:48:56Z"
-  finalizers:
-  - service.kubernetes.io/load-balancer-cleanup
-  name: nginx-service
-  namespace: default
-  resourceVersion: "22578"
-  uid: be10697a-dbc0-4452-be51-8eb20a658275
-  ports:
-  - nodePort: 31070
-    port: 80
-    protocol: TCP
-    targetPort: 80
-  selector:
-    tier: frontend
-  sessionAffinity: None
-  type: LoadBalancer
-status:
-  loadBalancer:
-    ingress:
-    - hostname: abe10697adbc04452be518eb20a65827-264762463.us-east-2.elb.amazonaws.com
-```
-
-1. A clusterIP key is updated in the manifest and assigned an IP address. Even though you have specified a Loadbalancer service type, internally it still requires a clusterIP to route the external traffic through.
-2. In the ports section, nodePort is still used. This is because Kubernetes still needs to use a dedicated port on the worker node to route the traffic through. Ensure that port range 30000-32767 is opened in your inbound Security Group configuration.
-3. More information about the provisioned balancer is also published in the .status.loadBalancer field.
-
-```
-status:
-  loadBalancer:
-    ingress:
-    - hostname: abe10697adbc04452be518eb20a65827-264762463.us-east-2.elb.amazonaws.com
-```
-
-Copy and paste the load balancer’s address to the browser, and you will access the Nginx service
-
-![nginx page](./images/nginx-from-loadbalancer.PNG)
-
-# Step 6: Creating Deployment
+### Step 4: Creating Deployment
 
 **Do not Use Replication Controllers – Use Deployment Controllers Instead**
 Kubernetes is loaded with a lot of features, and with its vibrant open source community, these features are constantly evolving and adding up.
@@ -696,8 +462,6 @@ nginx-deployment-5cb44ffccf-v6gnf   1/1     Running   0          2m31s
 nginx-deployment-5cb44ffccf-wdk2f   1/1     Running   0          4m59s
 ```
 
-
-
 5. Exec into one of the Pod’s container to run Linux commands
 
 ```
@@ -765,6 +529,299 @@ server {
     #}
 }
 ```
+
+### Step 5 : Accessing The Nginx Application Through A Browser
+
+Now you have a running Pod, ReplicaSet and a Deployment with the application. What’s next?
+
+The ultimate goal of any solution is to access it either through a web portal or some application (e.g., mobile app). We have a Pod with Nginx container, so we need to access it from the browser. But all you have is a running Pod that has its own virtual IP address created by kubernates which cannot be accessed through the browser. To achieve this, we need another Kubernetes object called Service to accept our request and pass it on to the Pod.
+
+A service is an object that accepts requests on behalf of the Pods and forwards it to the Pod’s IP address. If you run the command below, you will be able to see the Pod’s IP address. But there is no way to reach it directly from the outside world.
+
+```
+kubectl get pod nginx-pod  -o wide
+```
+
+Output:
+
+NAME        READY   STATUS    RESTARTS   AGE    IP               NODE                                              NOMINATED NODE   READINESS GATES
+nginx-pod   1/1     Running   0          138m   10.0.0.144   ip-10-0-0-216.us-east-2.compute.internal   <none>           <none>
+
+Let us try to access the Pod through its IP address from within the K8s cluster. To do this,
+
+1. We need an image that already has curl software installed. You can check it out here
+```
+dareyregistry/curl
+```
+2. Run kubectl to connect inside the container
+```
+kubectl run curl --image=dareyregistry/curl -i --tty
+```
+3. Run curl and point to the IP address of the Nginx Pod 
+```
+# curl -v 10.0.0.144:80
+```
+
+Output:
+
+![nginx page from another container](./images/nginx-page-from-curl.PNG)
+
+4. Port-forward your host machine's port (your laptop) to the Pod's port
+```
+kubectl port-forward pod/<nane of the pod> <HOSTS port>:<PODS port> -n <namespace>
+```
+Example: kubectl port-forward pod/nginx-pod 8000:80 -n dev
+
+If the use case for your solution is required for internal use ONLY, without public Internet requirement. Then, this should be OK. But in most cases, it is NOT!
+
+Assuming that your requirement is to access the Nginx Pod internally, using the Pod’s IP address directly as above is not a reliable choice because Pods are ephemeral. They are not designed to run forever. When they die and another Pod is brought back up, the IP address will change and any application that is using the previous IP address directly will break.
+
+All types of service
+
+![all types of service](./images/All-service-type-in-one-view.jpeg)
+
+#### ClusterIP
+
+![all types of service](./images/service-ClusterIP-to-Pod-1.png)
+
+![all types of service](./images/service-ClusterIP-to-Pod-2.png)
+
+To solve this problem, kubernetes uses Service – An object that abstracts the underlining IP addresses of Pods. A service can serve as a load balancer, and a reverse proxy which basically takes the request using a human readable DNS name, resolves to a Pod IP that is running and forwards the request to it. This way, you do not need to use an IP address. Rather, you can simply refer to the service name directly.
+
+Let us create a service to access the **Nginx Pod**
+
+1. Create a Service yaml manifest file:
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    tier: frontend
+  ports:
+    - protocol: TCP
+      port: 80 # This is the port the service is listening on or the port of the service
+      targetPort: 80 # This is the port the container is listening on or the port of the pod
+```
+
+**port: 80**: The port at which the service listens on ie the port of the service
+**targetPort**: This is the port the application on the pod is forwarding traffic to or listens on ie the port of the pod
+
+2. Create a nginx-service resource by applying your manifest
+```
+kubectl apply -f nginx-service.yaml
+```
+
+output:
+
+service/nginx-service created
+
+3. Check the created service
+
+```
+kubectl get service
+```
+output:
+
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   172.20.0.1      <none>        443/TCP   41m
+nginx-service   ClusterIP   172.20.101.166   <none>        80/TCP   29s
+
+#### Observation:
+
+The **TYPE** column in the output shows that there are different service types.
+
+- ClusterIP
+- NodePort
+- LoadBalancer &
+- Headless Service
+
+Since we did not specify any type, it is obvious that the default type is **ClusterIP**
+
+Now that we have a service created, how can we access the app? Since there is no public IP address, we can leverage kubectl's port-forward functionality.
+```
+kubectl port-forward svc/<nane of the service> <HOST port>:<SVC port> -n <namespace>
+```
+
+Example
+kubectl  port-forward svc/nginx-service 8089:80
+
+8089 is an arbitrary port number on your laptop or client PC, and we want to tunnel traffic through it to the port number of the nginx-service 80.
+
+![service port forwarding](./images/service-port-forwarding.PNG)
+
+Unfortunately, this will not work quite yet. Because there is no way the service will be able to select the actual Pod it is meant to route traffic to. If there are hundreds of Pods running, there must be a way to ensure that the service only forwards requests to the specific Pod it is intended for.
+
+To make this work, you must reconfigure the Pod manifest and introduce labels to match the selectors key in the field section of the service manifest.
+
+1. Update the Pod manifest with the below and apply the manifest:
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    tier: frontend 
+spec:
+  containers:
+  - image: nginx:latest
+    name: nginx-pod
+    ports:
+    - containerPort: 80
+      protocol: TCP
+```
+
+Notice that under the metadata section, we have now introduced labels with a key field called tier and its value frontend. This matches exactly the selector key in the service manifest.
+
+The key/value pairs can be anything you specify. These are not Kubernetes specific keywords. As long as it matches the selector, the service object will be able to route traffic to the Pod.
+
+Apply the manifest with:
+```
+kubectl apply -f nginx-pod.yaml
+```
+
+2. Run kubectl port-forward command again
+```
+kubectl  port-forward svc/nginx-service 8089:80
+```
+output:
+
+![port forwarding](./images/port-forwarding.PNG)
+
+Then go to your web browser and enter **localhost:8089** – You should now be able to see the nginx page in the browser.
+
+![nginx page from the browser](./images/nginx-page-from-browser.PNG)
+
+#### NodePort
+
+![all types of service](./images/All-service-type-in-one-view.jpeg)
+This allows us to reach the application directly from the port of the node/ec2 instance that the pod/application is running on. When you specify a port on the node, you can access the application with just the public ip address:port of the instance with out doing port forwarding.
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort
+  selector:
+    tier: frontend
+  ports:
+      # By default and for convenience, the `targetPort` is set to the same value as the `port` field.
+    - port: 80
+      targetPort: 80
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+      nodePort: 30009
+```
+
+**nodePort**: The port of the node/instance
+
+#### LoadBalancer
+USING AWS LOAD BALANCER TO ACCESS YOUR SERVICE IN KUBERNETES.
+
+![all types of service](./images/service-LB-to-Pod.png)
+
+Note: You will only be able to test this using AWS EKS. You don not have to set this up in current project yet. In the next project, you will update your Terraform code to build an EKS cluster. 
+
+You have previously accessed the Nginx service through ClusterIP, and NodeIP, but there is another service type – Loadbalancer. This type of service does not only create a Service object in K8s, but also provisions a real external Load Balancer (e.g. Elastic Load Balancer – ELB in AWS)
+
+To get the experience of this service type, update your service manifest and use the LoadBalancer type. Also, ensure that the selector references the Pods in the replica set.
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: LoadBalancer
+  selector:
+    tier: frontend
+  ports:
+    - protocol: TCP
+      port: 80 # This is the port the service is listening on or the port of the service
+      targetPort: 80 # This is the port the container is listening on or the port of the pod
+```
+
+Apply the configuration:
+
+```
+kubectl apply -f nginx-service-LB.yaml
+```
+
+Get the newly created service :
+
+```
+kubectl get service nginx-service
+```
+
+output:
+
+![loadbalancer service type](./images/service-type-loadbalancer.PNG)
+
+An ELB resource will be created in your AWS console.
+
+![loadbalancer service type](./images/aws-loadbalancer.PNG)
+
+A Kubernetes component in the control plane called Cloud-controller-manager is responsible for triggeriong this action. It connects to your specific cloud provider’s (AWS) APIs and create resources such as Load balancers. It will ensure that the resource is appropriately tagged:
+
+![loadbalancer service type](./images/aws-loadbalancer-tag.PNG)
+
+Get the output of the entire yaml for the service. You will see some additional information about this service in which you did not define them in the yaml manifest. Kubernetes did this for you.
+
+```
+kubectl get service nginx-service -o yaml
+```
+
+output:
+
+```
+$ kubectl get service nginx-service -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"nginx-service","namespace":"default"},"spec":{"ports":[{"port":80,"protocol":"TCP","targetPort":80}],"selector":{"tier":"frontend"},"type":"LoadBalancer"}}
+  creationTimestamp: "2022-09-09T10:48:56Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  name: nginx-service
+  namespace: default
+  resourceVersion: "22578"
+  uid: be10697a-dbc0-4452-be51-8eb20a658275
+  ports:
+  - nodePort: 31070
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    tier: frontend
+  sessionAffinity: None
+  type: LoadBalancer
+status:
+  loadBalancer:
+    ingress:
+    - hostname: abe10697adbc04452be518eb20a65827-264762463.us-east-2.elb.amazonaws.com
+```
+
+1. A clusterIP key is updated in the manifest and assigned an IP address. Even though you have specified a Loadbalancer service type, internally it still requires a clusterIP to route the external traffic through.
+2. In the ports section, nodePort is still used. This is because Kubernetes still needs to use a dedicated port on the worker node to route the traffic through. Ensure that port range 30000-32767 is opened in your inbound Security Group configuration.
+3. More information about the provisioned loadbalancer is also published in the .status.loadBalancer field.
+
+```
+status:
+  loadBalancer:
+    ingress:
+    - hostname: abe10697adbc04452be518eb20a65827-264762463.us-east-2.elb.amazonaws.com
+```
+
+Copy and paste the load balancer’s address to the browser, and you will access the Nginx service
+
+![nginx page](./images/nginx-from-loadbalancer.PNG)
 
 Now, as we have got acquaited with most common Kubernetes workloads to deploy applications:
 
@@ -838,7 +895,6 @@ pod "nginx-deployment-5cb44ffccf-mskvx" deleted
 ```
 
 7. Refresh the web page – You will see that the content you saved in the container is no longer there. That is because Pods do not store data when they are being recreated – that is why they are called ephemeral or stateless. (But not to worry, we will address this with persistent volumes in the next project)
-
 
 Storage is a critical part of running containers, and Kubernetes offers some powerful primitives for managing it. Dynamic volume provisioning, a feature unique to Kubernetes, which allows storage volumes to be created on-demand. Without dynamic provisioning, DevOps engineers must manually make calls to the cloud or storage provider to create new storage volumes, and then create PersistentVolume objects to represent them in Kubernetes. The dynamic provisioning feature eliminates the need for DevOps to pre-provision storage. Instead, it automatically provisions storage when it is requested by users.
 
