@@ -206,8 +206,10 @@ kubectl get rs -o wide
 
 Output:
 
+```
 NAME        DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES         SELECTOR
 nginx-rs   3         3         3       34m   nginx-pod    nginx:latest   app=nginx-pod
+```
 
 Notice, that ReplicaSet understands which Pods to create by using SELECTOR key-value pair.
 
@@ -544,8 +546,10 @@ kubectl get pod nginx-pod  -o wide
 
 Output:
 
+```
 NAME        READY   STATUS    RESTARTS   AGE    IP               NODE                                              NOMINATED NODE   READINESS GATES
 nginx-pod   1/1     Running   0          138m   10.0.0.144   ip-10-0-0-216.us-east-2.compute.internal   <none>           <none>
+```
 
 Let us try to access the Pod through its IP address from within the K8s cluster. To do this,
 
@@ -624,9 +628,11 @@ kubectl get service
 ```
 output:
 
+```
 NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
 kubernetes      ClusterIP   172.20.0.1      <none>        443/TCP   41m
 nginx-service   ClusterIP   172.20.101.166   <none>        80/TCP   29s
+```
 
 #### Observation:
 
@@ -721,7 +727,7 @@ spec:
 
 #### LoadBalancer
 USING AWS LOAD BALANCER TO ACCESS YOUR SERVICE IN KUBERNETES.
-Note: You will only be able to test this using AWS EKS. You don not have to set this up in current project yet. In the next project, you will update your Terraform code to build an EKS cluster. 
+**Note**: You will only be able to test this using AWS EKS. You don not have to set this up in current project yet. In the next project, you will update your Terraform code to build an EKS cluster. 
 
 You have previously accessed the Nginx service through ClusterIP, and NodeIP, but there is another service type – Loadbalancer. This type of service does not only create a Service object in K8s, but also provisions a real external Load Balancer (e.g. Elastic Load Balancer – ELB in AWS)
 
