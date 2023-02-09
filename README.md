@@ -23,8 +23,8 @@ Within this project we are going to learn and see in action following:
 
 4. Deploying more tools with Helm charts on AWS Elastic Kubernetes Service (EKS)
     - Jenkins
-        - MySQL
-        - Ingress Controllers (Nginx)
+    - MySQL
+    - Ingress Controllers (Nginx)
     - Cert-Manager
     - Ingress for Jenkins
     - Ingress for the actual application
@@ -45,7 +45,7 @@ Created an AWS EKS cluster using the github terraform code repository for aws pr
 Connect to the cluster with the below command
 
 ```
-aws eks --region us-east-2 update-kubeconfig --name terraform-eks-demo
+aws eks update-kubeconfig --region us-east-2 --name terraform-eks-demo
 ```
 
 ![eks cluster](./images/eks-cluster.PNG)
@@ -405,7 +405,7 @@ spec:
       - name: nginx
         image: nginx:latest
         ports:
-        - containerPort: 8
+        - containerPort: 80
 ```
 
 ```
@@ -473,7 +473,7 @@ kubectl exec -it nginx-deployment-5cb44ffccf-84tpn bash
 List the files and folders in the Nginx directory
 
 root@nginx-deployment-5cb44ffccf-84tpn:/# ls -ltr /etc/nginx/
-total 24
+```
 -rw-r--r-- 1 root root  664 Jul 19 14:05 uwsgi_params
 -rw-r--r-- 1 root root  636 Jul 19 14:05 scgi_params
 -rw-r--r-- 1 root root 5349 Jul 19 14:05 mime.types
@@ -481,6 +481,7 @@ total 24
 -rw-r--r-- 1 root root  648 Jul 19 15:06 nginx.conf
 lrwxrwxrwx 1 root root   22 Jul 19 15:06 modules -> /usr/lib/nginx/modules
 drwxr-xr-x 1 root root   26 Sep  9 13:21 conf.d
+```
 
 Check the content of the default Nginx configuration file
 
@@ -574,7 +575,7 @@ Output:
 ```
 kubectl port-forward pod/<nane of the pod> <HOSTS port>:<PODS port> -n <namespace>
 ```
-Example: kubectl port-forward pod/nginx-pod 8000:80 -n dev
+Example: `kubectl port-forward pod/nginx-pod 8000:80 -n dev`
 
 If the use case for your solution is required for internal use ONLY, without public Internet requirement. Then, this should be OK. But in most cases, it is NOT!
 
@@ -610,6 +611,7 @@ spec:
 ```
 
 **port: 80**: The port at which the service listens on ie the port of the service
+
 **targetPort**: This is the port the application on the pod is forwarding traffic to or listens on ie the port of the pod
 
 2. Create a nginx-service resource by applying your manifest
