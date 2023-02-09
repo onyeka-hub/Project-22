@@ -653,7 +653,7 @@ kubectl port-forward svc/<nane of the service> <HOST port>:<SVC port> -n <namesp
 ```
 
 Example
-kubectl  `port-forward svc/nginx-service 8089:80`
+`kubectl port-forward svc/nginx-service 8089:80`
 
 8089 is an arbitrary port number on your laptop or client PC, and we want to tunnel traffic through it to the port number of the nginx-service 80.
 
@@ -772,7 +772,7 @@ An ELB resource will be created in your AWS console.
 
 ![loadbalancer service type](./images/aws-loadbalancer.PNG)
 
-A Kubernetes component in the control plane called Cloud-controller-manager is responsible for triggeriong this action. It connects to your specific cloud provider’s (AWS) APIs and create resources such as Load balancers. It will ensure that the resource is appropriately tagged:
+A Kubernetes component in the control plane called Cloud-controller-manager is responsible for triggering this action. It connects to your specific cloud provider’s (AWS) APIs and create resources such as Load balancers. It will ensure that the resource is appropriately tagged:
 
 ![loadbalancer service type](./images/aws-loadbalancer-tag.PNG)
 
