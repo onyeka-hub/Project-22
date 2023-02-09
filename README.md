@@ -653,7 +653,7 @@ kubectl port-forward svc/<nane of the service> <HOST port>:<SVC port> -n <namesp
 ```
 
 Example
-kubectl  port-forward svc/nginx-service 8089:80
+kubectl  `port-forward svc/nginx-service 8089:80`
 
 8089 is an arbitrary port number on your laptop or client PC, and we want to tunnel traffic through it to the port number of the nginx-service 80.
 
