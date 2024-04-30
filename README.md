@@ -58,8 +58,7 @@ Every Kubernetes object includes object fields that govern the object’s config
 
 - kind: Represents the type of kubernetes object created. It can be a Pod, DaemonSet, Deployments or Service.
 - version: Kubernetes api version used to create the resource, it can be v1, v1beta and v2. Some of the kubernetes features can be released under beta and available for general public usage.
-- metadata: provides information about the resource like name of the Pod, namespace under which the Pod will be running,
-labels and annotations.
+- metadata: provides information about the resource like name of the Pod, namespace under which the Pod will be running, labels and annotations.
 - spec: consists of the core information about Pod. Here we will tell kubernetes what would be the expected state of resource, Like container image, number of replicas, environment variables and volumes.
 - status: consists of information about the running object, status of each container. Status field is supplied and updated by Kubernetes after creation. This is not something you will have to put in the YAML manifest.
 
@@ -74,7 +73,7 @@ Lets see what it looks like to have a Pod running in a k8s cluster. This section
 
 The structure is similar for any Kubernetes objects, and you will get to see them all as we progress.
 
-1. Create a Pod yaml manifest
+1. Create a Pod yaml manifest - nginx-pod.yaml
 
 ```
 apiVersion: v1
@@ -92,7 +91,7 @@ spec:
 
 2. Apply the manifest with the help of kubectl
 ```
-    kubectl apply -f nginx-pod.yaml
+kubectl apply -f nginx-pod.yaml
 ```
 
 Output:
@@ -101,7 +100,7 @@ Output:
 
 3. Get an output of the pods running in the cluster
 ```
-    kubectl get pods
+kubectl get pods
 ```
 
 Output:
@@ -125,9 +124,9 @@ kubectl describe pod nginx-pod
 - Running the following commands to inspect the setup:
 
 ```
-$ kubectl get pod 
+kubectl get pod 
 
-$ kubectl get pod nginx-pod -o wide
+kubectl get pod nginx-pod -o wide
 ```
 
 ![inspecting the nginx pod](./images/nginx-pod-inspect.PNG)
@@ -191,7 +190,7 @@ Output:
 pod "nginx-rs-5c4xs" deleted
 ```
 ```
-  kubectl get pods
+kubectl get pods
 ```
 
 ![replica-set](./images/replicaset.PNG)
@@ -440,12 +439,14 @@ nginx-deployment-5cb44ffccf-w4cwp   1/1     Running   0          3m16s
 4. Scale the replicas in the Deployment to 15 Pods
 
 ```
-$ kubectl scale deployment/nginx-deployment --replicas=15
+kubectl scale deployment/nginx-deployment --replicas=15
+
 deployment.apps/nginx-deployment scaled
 ```
 
 ```
-$ kubectl get pods
+kubectl get pods
+
 NAME                                READY   STATUS    RESTARTS   AGE
 nginx-deployment-5cb44ffccf-84tpn   1/1     Running   0          2m31s
 nginx-deployment-5cb44ffccf-8cbkq   1/1     Running   0          2m31s
@@ -558,10 +559,12 @@ Let us try to access the Pod through its IP address from within the K8s cluster.
 ```
 dareyregistry/curl
 ```
+
 2. Run kubectl to connect inside the container
 ```
 kubectl run curl --image=dareyregistry/curl -i --tty
 ```
+
 3. Run curl and point to the IP address of the Nginx Pod 
 ```
 # curl -v 10.0.0.144:80
@@ -570,6 +573,7 @@ kubectl run curl --image=dareyregistry/curl -i --tty
 Output:
 
 ![nginx page from another container](./images/nginx-page-from-curl.PNG)
+
 
 4. Port-forward your host machine's port (your laptop) to the Pod's port
 ```
@@ -594,7 +598,7 @@ To solve this problem, kubernetes uses Service – An object that abstracts the 
 
 Let us create a service to access the **Nginx Pod**
 
-1. Create a Service yaml manifest file:
+1. Create a Service yaml manifest file: nginx-service.yaml
 
 ```
 apiVersion: v1
@@ -653,11 +657,15 @@ kubectl port-forward svc/<nane of the service> <HOST port>:<SVC port> -n <namesp
 ```
 
 Example
-`kubectl port-forward svc/nginx-service 8089:80`
+```
+kubectl port-forward svc/nginx-service 8089:80
+```
 
 8089 is an arbitrary port number on your laptop or client PC, and we want to tunnel traffic through it to the port number of the nginx-service 80.
 
 ![service port forwarding](./images/service-port-forwarding.PNG)
+
+In case of connection error at port 10250, open this port in the security group.
 
 Unfortunately, this will not work quite yet. Because there is no way the service will be able to select the actual Pod it is meant to route traffic to. If there are hundreds of Pods running, there must be a way to ensure that the service only forwards requests to the specific Pod it is intended for.
 
@@ -880,7 +888,7 @@ Update the content of the file and add the code below /usr/share/nginx/html/inde
 <h1>Welcome to DAREY.IO!</h1>
 <p>I love experiencing Kubernetes</p>
 
-<p>Learning by doing is absolutely the best strategy at 
+<p>Learning by doing is absolutely the best Onu at 
 <a href="https://darey.io/">www.darey.io</a>.<br/>
 for skills acquisition
 <a href="https://darey.io/">www.darey.io</a>.</p>
