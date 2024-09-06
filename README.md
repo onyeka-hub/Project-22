@@ -40,12 +40,14 @@ Within this project we are going to learn and see in action following:
 This project demonstrates how containerised applications are deployed as pods in Kubernetes and how to access the application from the browser.
 
 ### Step 1
-Created an AWS EKS cluster using the github terraform code repository for aws provider: https://github.com/onyeka-hub/terraform-provider-aws.git or with the terraform eks modules
+Created an AWS EKS cluster using the github terraform code repository for aws provider: [here](https://github.com/onyeka-hub/terraform-provider-aws.git) or with the terraform eks modules.
 
 Connect to the cluster with the below command
 
 ```
-aws eks update-kubeconfig --region us-east-2 --name terraform-eks-demo
+aws eks update-kubecofig --name <cluster_name> --region <cluster_region> --kubeconfig kubeconfig
+
+aws eks update-kubeconfig --region us-east-2 --name onyeka-eks-19-8-0
 ```
 
 ![eks cluster](./images/eks-cluster.PNG)
@@ -468,7 +470,7 @@ nginx-deployment-5cb44ffccf-wdk2f   1/1     Running   0          4m59s
 5. Exec into one of the Pod’s container to run Linux commands
 
 ```
-kubectl exec -it nginx-deployment-5cb44ffccf-84tpn bash
+kubectl exec -it nginx-deployment-5cb44ffccf-84tpn -- bash
 ```
 
 List the files and folders in the Nginx directory
@@ -616,7 +618,7 @@ spec:
 
 **port: 80**: The port at which the service listens on ie the port of the service
 
-**targetPort**: This is the port the application on the pod is forwarding traffic to or listens on ie the port of the pod
+**targetPort**: This is the port the application on the pod is forwarding traffic to or the port the container listens on ie the port of the pod
 
 2. Create a nginx-service resource by applying your manifest
 ```
