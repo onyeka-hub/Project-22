@@ -44,7 +44,7 @@ Created an AWS EKS cluster using the github terraform code repository for aws pr
 
 Connect to the cluster with the below command
 
-```
+```sh
 aws eks update-kubecofig --name <cluster_name> --region <cluster_region> --kubeconfig kubeconfig
 
 aws eks update-kubeconfig --region us-east-2 --name onyeka-eks-19-8-0
@@ -77,7 +77,7 @@ The structure is similar for any Kubernetes objects, and you will get to see the
 
 1. Create a Pod yaml manifest - nginx-pod.yaml
 
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -92,7 +92,7 @@ spec:
 ```
 
 2. Apply the manifest with the help of kubectl
-```
+```sh
 kubectl apply -f nginx-pod.yaml
 ```
 
@@ -101,7 +101,7 @@ Output:
 ![nginx pod created](./images/nginx-pod-created.PNG)
 
 3. Get an output of the pods running in the cluster
-```
+```sh
 kubectl get pods
 ```
 
@@ -115,7 +115,7 @@ NAME        READY   STATUS    RESTARTS   AGE
 nginx-pod   0/1     Pending   0          111s
 
 5. To see other fields introduced by kubernetes after you have deployed the resource, simply run below command, and examine the output. You will see other fields that kubernetes updates from time to time to represent the state of the resource within the cluster. -o simply means the output format.
-```
+```sh
 kubectl get pod nginx-pod -o yaml 
 
 kubectl describe pod nginx-pod
@@ -125,7 +125,7 @@ kubectl describe pod nginx-pod
 
 - Running the following commands to inspect the setup:
 
-```
+```sh
 kubectl get pod 
 
 kubectl get pod nginx-pod -o wide
@@ -138,7 +138,7 @@ kubectl get pod nginx-pod -o wide
 
 Let us create a rs.yaml manifest for a ReplicaSet object:
 
-```
+```yaml
 #Part 1
 apiVersion: apps/v1
 kind: ReplicaSet
@@ -164,7 +164,7 @@ spec:
           protocol: TCP
 ```
 
-```
+```sh
 kubectl apply -f rs.yaml
 ```
 
@@ -176,14 +176,14 @@ The manifest file of ReplicaSet consist of the following fields:
 - spec: This field specifies the label selector to be used to select the Pods, number of replicas of the Pod to be run and the container or list of containers which the Pod will run. In the above example, we are running 3 replicas of nginx container.
 
 Let us check what Pods have been created:
-```
+```sh
 kubectl get pods
 ```
 
 Here we see three ngix-pods with some random suffixes (e.g., -5c4xs) – it means, that these Pods were created and named automatically by some other object (higher level of abstraction) such as ReplicaSet.
 
 Try to delete one of the Pods:
-```
+```sh
 kubectl delete pod nginx-rs-5c4xs
 ```
 
@@ -191,7 +191,7 @@ Output:
 ```
 pod "nginx-rs-5c4xs" deleted
 ```
-```
+```sh
 kubectl get pods
 ```
 
@@ -201,7 +201,7 @@ You can see, that we still have all 3 Pods, but one has been recreated (can you 
 
 Explore the ReplicaSet created:
 
-```
+```sh
 kubectl get rs -o wide
 ```
 
@@ -236,7 +236,7 @@ Let us see how we can use both to scale our Replicaset up and down:
 
 We can easily scale our ReplicaSet up by specifying the desired number of replicas in an imperative command, like this:
 
-```
+```sh
 kubectl scale rs nginx-rs --replicas=5
 ```
 Output
@@ -244,8 +244,8 @@ Output
 replicationcontroller/nginx-rc scaled
 ```
 
-```
- kubectl get pods
+```sh
+kubectl get pods
 ```
 ![scaling up the replicaset](./images/scaling-replicaset.PNG)
 
@@ -255,20 +255,20 @@ Scaling down will work the same way, so scale it down to 3 replicas.
 
 Declarative way would be to open our rs.yaml manifest, change desired number of replicas in respective section
 
-```
+```yaml
 spec:
   replicas: 3
 ```
 
 and applying the updated manifest:
 
-```
+```sh
 kubectl apply -f rs.yaml
 ```
 
 There is another method – ‘ad-hoc’, it is definitely not the best practice and we do not recommend using it, but you can edit an existing ReplicaSet with following command:
 
-```
+```sh
 kubectl edit -f rs.yaml
 ```
 
@@ -281,7 +281,7 @@ As Kubernetes mature as a technology, so does its features and improvements to k
 
 So far, we used a simple selector that just matches a key-value pair and check only ‘equality’:
 
-```
+```yaml
   selector:
     app: nginx-pod
 ```
@@ -296,7 +296,7 @@ But in some cases, we want ReplicaSet to manage our existing containers that mat
 
 Let us look at the following manifest file:
 
-```
+```yaml
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata: 
@@ -327,8 +327,8 @@ In the above spec file, under the selector, matchLabels and matchExpression are 
 
 ### Get the replication set:
 
-```
- kubectl get rs nginx-rs -o wide
+```sh
+kubectl get rs nginx-rs -o wide
 ```
 
 ![replicaset advance features](./images/replicaset-advance.PNG)
@@ -348,13 +348,13 @@ Officially, it is highly recommended to use Deplyments to manage replica sets ra
 Let us see Deployment in action.
 
 1. Delete the ReplicaSet
-```
+```sh
 kubectl delete rs nginx-rs
 ```
 
 2. Understand the layout of the deployment.yaml manifest below. Lets go through the 3 separated sections:
 
-```
+```yaml
 # Section 1 - This is the part that defines the deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -385,7 +385,7 @@ spec:
 
 3. Putting them altogether
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -409,7 +409,7 @@ spec:
         - containerPort: 80
 ```
 
-```
+```sh
 kubectl apply -f deployment.yaml
 ```
 
@@ -440,7 +440,7 @@ nginx-deployment-5cb44ffccf-w4cwp   1/1     Running   0          3m16s
 
 4. Scale the replicas in the Deployment to 15 Pods
 
-```
+```sh
 kubectl scale deployment/nginx-deployment --replicas=15
 
 deployment.apps/nginx-deployment scaled
@@ -469,7 +469,7 @@ nginx-deployment-5cb44ffccf-wdk2f   1/1     Running   0          4m59s
 
 5. Exec into one of the Pod’s container to run Linux commands
 
-```
+```sh
 kubectl exec -it nginx-deployment-5cb44ffccf-84tpn -- bash
 ```
 
@@ -544,7 +544,7 @@ The ultimate goal of any solution is to access it either through a web portal or
 
 A service is an object that accepts requests on behalf of the Pods and forwards it to the Pod’s IP address. If you run the command below, you will be able to see the Pod’s IP address. But there is no way to reach it directly from the outside world.
 
-```
+```sh
 kubectl get pod nginx-pod  -o wide
 ```
 
@@ -558,17 +558,17 @@ nginx-pod   1/1     Running   0          138m   10.0.0.144   ip-10-0-0-216.us-ea
 Let us try to access the Pod through its IP address from within the K8s cluster. To do this,
 
 1. We need an image that already has curl software installed. You can check it out here
-```
+```sh
 dareyregistry/curl
 ```
 
 2. Run kubectl to connect inside the container
-```
+```sh
 kubectl run curl --image=dareyregistry/curl -i --tty
 ```
 
 3. Run curl and point to the IP address of the Nginx Pod 
-```
+```sh
 # curl -v 10.0.0.144:80
 ```
 
@@ -578,7 +578,7 @@ Output:
 
 
 4. Port-forward your host machine's port (your laptop) to the Pod's port
-```
+```sh
 kubectl port-forward pod/<nane of the pod> <HOSTS port>:<PODS port> -n <namespace>
 ```
 Example: `kubectl port-forward pod/nginx-pod 8000:80 -n dev`
@@ -602,7 +602,7 @@ Let us create a service to access the **Nginx Pod**
 
 1. Create a Service yaml manifest file: nginx-service.yaml
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -621,7 +621,7 @@ spec:
 **targetPort**: This is the port the application on the pod is forwarding traffic to or the port the container listens on ie the port of the pod
 
 2. Create a nginx-service resource by applying your manifest
-```
+```sh
 kubectl apply -f nginx-service.yaml
 ```
 
@@ -631,7 +631,7 @@ service/nginx-service created
 
 3. Check the created service
 
-```
+```sh
 kubectl get service
 ```
 output:
@@ -654,12 +654,12 @@ The **TYPE** column in the output shows that there are different service types.
 Since we did not specify any type, it is obvious that the default type is **ClusterIP**
 
 Now that we have a service created, how can we access the app? Since there is no public IP address, we can leverage kubectl's port-forward functionality.
-```
+```sh
 kubectl port-forward svc/<nane of the service> <HOST port>:<SVC port> -n <namespace>
 ```
 
 Example
-```
+```sh
 kubectl port-forward svc/nginx-service 8089:80
 ```
 
@@ -675,7 +675,7 @@ To make this work, you must reconfigure the Pod manifest and introduce labels to
 
 1. Update the Pod manifest with the below and apply the manifest:
 
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -696,12 +696,12 @@ Notice that under the metadata section, we have now introduced labels with a key
 The key/value pairs can be anything you specify. These are not Kubernetes specific keywords. As long as it matches the selector, the service object will be able to route traffic to the Pod.
 
 Apply the manifest with:
-```
+```sh
 kubectl apply -f nginx-pod.yaml
 ```
 
 2. Run kubectl port-forward command again
-```
+```sh
 kubectl  port-forward svc/nginx-service 8089:80
 ```
 output:
@@ -717,7 +717,7 @@ This allows us to reach the application directly from the port of the node/ec2 i
 
 ![all types of service](./images/service-NodePort-to-Pod.jpeg)
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -747,7 +747,7 @@ You have previously accessed the Nginx service through ClusterIP, and NodeIP, bu
 
 To get the experience of this service type, update your service manifest and use the LoadBalancer type. Also, ensure that the selector references the Pods in the replica set.
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -764,13 +764,13 @@ spec:
 
 Apply the configuration:
 
-```
+```sh
 kubectl apply -f nginx-service-LB.yaml
 ```
 
 Get the newly created service :
 
-```
+```sh
 kubectl get service nginx-service
 ```
 
@@ -788,13 +788,13 @@ A Kubernetes component in the control plane called Cloud-controller-manager is r
 
 Get the output of the entire yaml for the service. You will see some additional information about this service in which you did not define them in the yaml manifest. Kubernetes did this for you.
 
-```
+```sh
 kubectl get service nginx-service -o yaml
 ```
 
 output:
 
-```
+```yaml
 $ kubectl get service nginx-service -o yaml
 apiVersion: v1
 kind: Service
@@ -828,7 +828,7 @@ status:
 2. In the ports section, nodePort is still used. This is because Kubernetes still needs to use a dedicated port on the worker node to route the traffic through. Ensure that port range 30000-32767 is opened in your inbound Security Group configuration.
 3. More information about the provisioned loadbalancer is also published in the .status.loadBalancer field.
 
-```
+```yaml
 status:
   loadBalancer:
     ingress:
@@ -860,20 +860,20 @@ nginx-deployment-5cb44ffccf-mskvx   1/1     Running   0          63m
 
 2. Exec into the running container (figure out the command yourself)
 
-```
-    kubectl exec -it nginx-deployment-5cb44ffccf-mskvx bash
+```sh
+kubectl exec -it nginx-deployment-5cb44ffccf-mskvx bash
 ```
 
 3. Install vim so that you can edit the file
 
-```
+```sh
 apt-get update
 apt-get install vim
 ```
 
 Update the content of the file and add the code below /usr/share/nginx/html/index.html
 
-```
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -905,8 +905,9 @@ for skills acquisition
 ![persisting data](./images/persisting-data.PNG)
 
 6. Now, delete the only running Pod
-```
- kubectl delete pod nginx-deployment-5cb44ffccf-mskvx
+```sh
+kubectl delete pod nginx-deployment-5cb44ffccf-mskvx
+
 pod "nginx-deployment-5cb44ffccf-mskvx" deleted
 ```
 
